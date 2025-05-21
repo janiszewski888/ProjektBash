@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 #grupa1
 
@@ -19,20 +19,81 @@
 #Dodawanie, usuwanie i modyfikowanie grup.
 #Wyświetlanie wszystkich użytkowników i grup oraz ich zawartości.
 #Modyfikowanie nazw użytkowników i grup.
+menuZadanie1(){
 
-zadanie1(){
+while true; do
+echo "Program do administrowania systemem"
+echo ""
+echo "1) Dodawanie uzytkownikow"
+echo "2) Wyswietl konta, grupy i zawartosc uzytkownikow"
+echo "3) Wyjście z programu Zadanie 1"
+read -p "Wybierz opcje [1-3]: " opcja
+
+#todo: "dodaj opcje ktora pozwoli na sprawdzenie
+#czy konto uzytkownika/grupa juz istnieje (??? nie wiem o co chodzi)
+	case $opcja in 
+		1)
+		
+		zadanie11
+		;;
+		2)
+		clear
+		zadanie12
+		;;
+		3)
+		clear
+		return
+		;;
+		*)
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+	echo ""
+done
+}
+
+zadanie11(){
 echo "Tworzenie x ilości użytkowników o nazwie user[1-x] o haśle password[1-x]"
-
+sudo groupadd -f studenci_informatyki
+sudo groupadd -f studenci_etyki
 while true; do
 read -p "ile użytkowników chciałbyś stworzyć? :" ilosc
 
 if [[ "$ilosc" =~ ^-?[0-9]+$ ]]; then
     if (( ilosc >= 1 )); then
 	polowa=$((ilosc/2))
-	drugaPolowa=$((ilosc/2+1))
 	
+	#tworzenie uzytkownikow w petli for
+	for ((i = 1; i <= ilosc; i++)); do
+	
+	nazwa="user$i"
+	haslo="password$i"
+	sprawdzCzyIstnieje=$(cat /etc/passwd | grep -w "^$nazwa" | cut -d: -f1)
+	if [[ -z "$sprawdzCzyIstnieje" ]] ; then
+	sudo useradd "$nazwa"
+	echo "$nazwa:$haslo" | sudo chpasswd
+	echo "utworzono uzytkownika $nazwa"
+	if((i <= polowa)); then
+	
+	grupa="studenci_informatyki"
+	sudo usermod -a -G "$grupa" "$nazwa"
+	echo "Dodano uzytkownika $nazwa do grupy $grupa"
+	
+	else
+	
+	grupa="studenci_etyki"
+	sudo usermod -a -G "$grupa" "$nazwa"
+	echo "Dodano uzytkownika $nazwa do grupy $grupa"
+	fi
+	
+	else
+	echo "uzytkownik $nazwa istnieje"
+	fi
+	
+	done	
+break
 
-# cut -d: -f1 /etc/passwd | grep "$szukanaOsoba" - sprawdzanie czy użytkownik istnieje
+#cut -d: -f1 /etc/passwd | grep "$szukanaOsoba" - sprawdzanie czy użytkownik istnieje
 
     else
         echo "Błąd: liczba musi być większa niż 1"
@@ -44,9 +105,20 @@ done
 
 
 }
+
+zadanie12(){
+clear
+echo "WYSWIETLANIE KONT, GRUP I INFORMACJI O NICH"
+echo ""
+echo "LISTA UZYTKOWNIKOW"
+cut -d: -f1 /etc/passwd
+echo "LISTA GRUP I JEJ CZLONKOW"
+getent group | awk -F: '{print "Nazwa grupy: " $1 " - Czlonkowie: " $4}'
+
+}
 zadanie2(){
 echo "Wykonanie zadania 2"
-} #komentarz nr 1
+} #
 zadanie3(){
 echo "Wykonanie zadania 3"
 }
@@ -56,6 +128,7 @@ echo "Wykonanie zadania 4"
 }
 
 #menu
+menu(){
 while true; do
 echo "Program do administrowania systemem"
 echo "MENU"
@@ -70,7 +143,7 @@ read -p "Wybierz opcje [1-5]: " opcja
 	case $opcja in 
 		1)
 		clear
-		zadanie1
+		menuZadanie1
 		;;
 		2)
 		clear
@@ -87,6 +160,7 @@ read -p "Wybierz opcje [1-5]: " opcja
 		5)
 		echo "Do zobaczenia"
 		break
+		menu
 		;;
 		*)
 	 	echo "Wybrano nieprawidłową opcje"
@@ -94,5 +168,11 @@ read -p "Wybierz opcje [1-5]: " opcja
 	esac
 	echo ""
 done
-		
+}
+
+main(){
+menu
+}
+
+main
 
