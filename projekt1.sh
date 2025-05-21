@@ -46,7 +46,7 @@ done
 }
 zadanie2(){
 echo "Wykonanie zadania 2"
-}
+} #komentarz nr 1
 zadanie3(){
 echo "Wykonanie zadania 3"
 }
