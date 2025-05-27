@@ -44,10 +44,11 @@ read -p "Wybierz opcje [1-3]: " opcja
 		return
 		;;
 		*)
+		clear
 	 	echo "Wybrano nieprawidłową opcje"
 		;;
 	esac
-	echo ""
+	
 done
 }
 
@@ -113,7 +114,12 @@ echo "LISTA UZYTKOWNIKOW"
 cut -d: -f1 /etc/passwd
 echo "LISTA GRUP I JEJ CZLONKOW"
 getent group | awk -F: '{print "Nazwa grupy: " $1 " - Czlonkowie: " $4}'
-
+read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+echo ""
+if [[ "$klawisz" == "q" ]]; then
+clear
+return
+fi
 }
 
 menuZadanie2(){
@@ -201,11 +207,6 @@ fi
 done
 }
 
-
-menuDozadania21(){
-echo "costam"
-}
-
 zadanie22(){
 # swoje adresy
 # polaczenie z internetem
@@ -232,12 +233,312 @@ ufw status
 
 
 zadanie3(){
-echo "Wykonanie zadania 3"
+while true; do
+liczbaUzytkownikow=$(wc -l /etc/passwd | awk '{print $1}')
+echo "Liczba uzytkownikow wynosi $liczbaUzytkownikow" 
+echo "Zarzadzanie uzytkownikami i grupami"
+echo "1) Dodawanie, usuwanie i modyfikowanie uzytkownikow"
+echo "2) Dodawanie, usuwanie i modyfikowanie grup"
+echo "3) Wyswietlanie wszystkich uzytkownikow i grup oraz ich zawartosci"
+echo "4) Wyjście"
+read -p "Wybierz opcje [1-4]: " opcja
+	case $opcja in 
+		1)
+		clear
+		zadanie31
+		;;
+		2)
+		clear
+		zadanie32
+		;;
+		3)
+		clear
+		zadanie33
+		;;
+		4)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+	
+done	
 }
-zadanie4(){
-echo "Wykonanie zadania 4"
+
+
+zadanie31(){
+
+dodajUzytkownika(){
+while true; do
+read -p "Podaj nazwe uzytkownika ktorego chcialbys/chcialabys dodac: " nazwaUzytkownika
+read -p "Czy chcialbys / chcialabys dac mu haslo [t/n]: " odpowiedz
+odpowiedz=$(echo "$odpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze litery na male
+
+case $odpowiedz in
+t)
+clear
+read -p "Prosze podac haslo" haslo
+useradd -m -p "$(openssl passwd -6 $haslo)" $nazwaUzytkownika
+clear
+echo "Stworzono uzytkownika $nazwaUzytkownika z haslem $haslo"
+return
+;;
+n)
+clear
+useradd $nazwaUzytkownika
+clear
+echo "Stworzono uzytkownika $nazwaUzytkownika"
+return
+
+;;
+*)
+clear
+echo "Podano nieprawidlowa opcje"
+;;
+esac
+
+done
+}
+
+usunUzytkownika(){
+while true; do
+read -p "Podaj nazwe uzytkownika ktorego chcialbys/chcialabys usunac: " nazwaUzytkownika
+if id "$nazwaUzytkownika" &>/dev/null; then
+userdel -r "$nazwaUzytkownika"
+clear
+echo "Uzytkownik $nazwaUzytkownika zostal usuniety."
+return
+else
+clear
+echo "Uzytkownik nie istnieje. Sprobuj jeszcze raz"
+return
+fi
+
+done
+}
+
+modyfikujUzytkownika(){
+echo "Modyfikacja uzytkownika"
+while true; do
+echo "1) Zmien nazwe uzytkownika"
+echo "2) Zmien haslo uzytkownika"
+echo "3) Dodaj uzytkownika do grupy"
+echo "4) Wyjscie"
+read -p "Wybierz opcje [1-4]: " opcja
+
+	case $opcja in 
+		1)
+		clear
+	 	echo "Zmienianie nazwy uzytkownika"
+	 	read -p "Podaj nazwe uzytkownika ktoremu chcialbys zmienic nazwe: " nazwaUzytkownika
+		if id "$nazwaUzytkownika" &>/dev/null; then
+		read -p "Podaj nowa nazwe uzytkownika: " nowanazwaUzytkownika
+		usermod -l $nowanazwaUzytkownika $nazwaUzytkownika
+		clear	
+		echo "Nazwa uzytkownika $nazwaUzytkownika zostala zmieniona na $nowanazwaUzytkownika"
+		return
+		else
+		clear
+		echo "Uzytkownik nie istnieje. Sprobuj jeszcze raz"
+		return
+		fi
+		;;
+		
+		
+		2)
+		clear
+		echo "Zmiana hasla uzytkownika"
+	 	read -p "Podaj nazwe uzytkownika ktoremu chcialbys zmienic haslo: " nazwaUzytkownika
+		if id "$nazwaUzytkownika" &>/dev/null; then
+		read -p "Podaj nowe haslo uzytkownika $nazwaUzytkownika: " nowehasloUzytkownika
+		echo "$nazwaUzytkownika:$nowehasloUzytkownika" | chpasswd
+		clear	
+		echo "Haslo uzytkownika $nazwaUzytkownika zostala zmieniona na $nowehasloUzytkownika"
+		return
+		else
+		clear
+		echo "Uzytkownik nie istnieje. Sprobuj jeszcze raz"
+		fi
+		echo ""
+		return
+		;;
+		3)
+		clear
+		echo "Dodaj uzytkownika do grupy"
+	 	read -p "Podaj nazwe uzytkownika ktoremu chcialbys nadac grupe: " nazwaUzytkownika
+	 	read -p "Podaj nazwe grupy do ktorej chcialbys przypisac uzytkownika: " nazwaGrupy
+		if id "$nazwaUzytkownika" &>/dev/null && getent group "$nazwaGrupy" &>/dev/null; then
+		usermod -aG $nazwaGrupy $nazwaUzytkownika
+		clear	
+		echo "Uzytkownik $nazwaUzytkownika zostal dodany do grupy $nazwaGrupy"
+		return
+		else
+		clear
+		echo "Uzytkownik lub grupa nie istnieja. Sprobuj jeszcze raz"
+		return
+		fi
+		return
+		;;
+		4)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+	
+	
+done
+# modyfikuj nazwe uzytkownika,
+# modyfikuj haslo uzytkownika,
+# dodaj uzytkownika do grupy 
+}
+
+
+while true; do
+echo "'Dodawanie, usuwanie i modyfikowanie uzytkownikow'"
+echo "1) Dodaj uzytkownika"
+echo "2) Usuwanie uzytkownika"
+echo "3) Modyfikowanie uzytkownikow"
+echo "4) Wyjscie"
+read -p "Wybierz opcje [1-4]: " opcja
+
+	case $opcja in 
+		1)
+		clear
+	 	dodajUzytkownika
+		;;
+		2)
+		clear
+		usunUzytkownika
+		;;
+		3)
+		clear
+		modyfikujUzytkownika
+		;;
+		4)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+
+
+done
+}
+
+
+zadanie32(){
+
+dodajGrupe(){
+echo "Dodawanie grupy"
+read -p "Podaj nazwe nowej grupy: " nazwaGrupy
+
+if getent group "$nazwaGrupy" &>/dev/null; then
+echo "Grupa $nazwaGrupy juz istnieje"
+return
+else
+groupadd $nazwaGrupy
+echo "Stworzono grupe $nazwaGrupy"
+return
+fi
 
 }
+
+
+
+usunGrupe(){
+echo "Usuwanie grupy"
+read -p "Podaj nazwe grupy ktora chcesz usunac: " nazwaGrupy
+
+if getent group "$nazwaGrupy" &>/dev/null; then
+groupdel $nazwaGrupy
+echo "Grupa $nazwaGrupy zostala usunieta"
+return
+else
+echo "Grupa $nazwaGrupy nie istnieje"
+return
+fi
+}
+
+zmiennazweGrupy(){
+echo "Zmiana nazwy grupy"
+read -p "Podaj grupe ktorej chcesz zmienic nazwe: " nazwaGrupy
+read -p "Podaj nowa nazwe grupy" nowanazwaGrupy
+if getent group "$nazwaGrupy" &>/dev/null; then
+groupmod -n $nowanazwaGrupy $nazwaGrupy
+echo "Nazwa grupy $nazwaGrupy zostala zmieniona na $nowanazwaGrupy"
+return
+else
+echo "Grupa $nazwaGrupy nie istnieje"
+return
+fi
+}
+
+
+
+
+
+while true; do
+echo "'Dodawanie, usuwanie i modyfikowanie grup'"
+echo "1) Dodaj grupe"
+echo "2) Usun grupe"
+echo "3) Zmien nazwe grupy"
+echo "4) Wyjscie"
+read -p "Wybierz opcje [1-4]: " opcja
+
+	case $opcja in 
+		1)
+		clear
+	 	dodajGrupe
+		;;
+		2)
+		clear
+		usunGrupe
+		;;
+		3)
+		clear
+		zmiennazweGrupy
+		;;
+		4)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+
+
+done
+}
+
+zadanie33(){
+clear
+echo "WYSWIETLANIE KONT, GRUP I INFORMACJI O NICH"
+echo ""
+echo "LISTA UZYTKOWNIKOW"
+cut -d: -f1 /etc/passwd
+echo "LISTA GRUP I JEJ CZLONKOW"
+getent group | awk -F: '{print "Nazwa grupy: " $1 " - Czlonkowie: " $4}'
+
+read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+echo ""
+if [[ "$klawisz" == "q" ]]; then
+clear
+return
+fi
+}
+
 
 #menu
 menu(){
@@ -275,10 +576,11 @@ read -p "Wybierz opcje [1-5]: " opcja
 		menu
 		;;
 		*)
+		clear
 	 	echo "Wybrano nieprawidłową opcje"
 		;;
 	esac
-	echo ""
+	
 done
 }
 
