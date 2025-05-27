@@ -114,12 +114,14 @@ echo "LISTA UZYTKOWNIKOW"
 cut -d: -f1 /etc/passwd
 echo "LISTA GRUP I JEJ CZLONKOW"
 getent group | awk -F: '{print "Nazwa grupy: " $1 " - Czlonkowie: " $4}'
+while true; do
 read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
 echo ""
 if [[ "$klawisz" == "q" ]]; then
 clear
 return
 fi
+done
 }
 
 menuZadanie2(){
@@ -232,7 +234,7 @@ ufw status
 
 
 
-zadanie3(){
+menuZadanie3(){
 while true; do
 liczbaUzytkownikow=$(wc -l /etc/passwd | awk '{print $1}')
 echo "Liczba uzytkownikow wynosi $liczbaUzytkownikow" 
@@ -530,15 +532,177 @@ echo "LISTA UZYTKOWNIKOW"
 cut -d: -f1 /etc/passwd
 echo "LISTA GRUP I JEJ CZLONKOW"
 getent group | awk -F: '{print "Nazwa grupy: " $1 " - Czlonkowie: " $4}'
-
+while true; do
 read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
 echo ""
 if [[ "$klawisz" == "q" ]]; then
 clear
 return
 fi
+done
 }
 
+
+menuZadanie4(){
+
+
+plikBaza="baza_danych.txt"
+# tworzenie bazy
+# wyswietlenie jej
+# dodanie nowego rekordu
+# edytowanie rekordu
+# usuniecie rekordu
+# wyjscie z bazy 
+
+
+
+stworzBaze(){
+read -p "Podaj liczbe kolumn: " liczbaKolumn
+echo "Podaj nazwy naglowkow (kazda nazwa kolumny oddzielona spacja): "
+read -a nazwyNaglowkow #zapisuje te slowa w tablice
+
+if [[ ${#nazwyNaglowkow[@]} -ne $liczbaKolumn ]]; then
+echo "Liczba naglowkow nie zgadza sie z liczba kolumn. Sprobuj ponownie"
+return
+else
+echo "${nazwyNaglowkow[*]}" > "$plikBaza"
+echo "Dodano naglowki tabeli"
+cat $plikBaza
+fi
+
+read -p "Czy chcesz wprowadzic rekord? [t/n]" odpowiedz
+odpowiedz=$(echo "$odpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze litery na male
+
+if [[ $odpowiedz == "t" ]]; then
+while true ; do
+cat $plikBaza
+echo "Wprowadz $liczbaKolumn wartosci zgodnymi z naglowkami (wiersz na gorze)"
+read -a dane
+	if [[ ${#dane[@]} -ne $liczbaKolumn ]]; then
+		echo "Liczba wartosci nie zgadza sie z iloscia kolumn ("$liczbaKolumn")"
+		continue
+	fi
+		echo "${dane[*]}" >> "$plikBaza"
+		read -p "Czy chcesz wprowadzic kolejny rekord? [t/n]" kolejnaOdpowiedz
+		kolejnaOdpowiedz=$(echo "$kolejnaOdpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze litery na male
+		[[ $kolejnaOdpowiedz != "t" ]] && break
+		echo "Dodawanie kolejnego rekordu..."  
+done 
+fi 
+
+
+}
+
+pokazBaze(){
+clear
+cat $plikBaza
+echo ""
+echo ""
+echo "----------------------------------"
+
+while true; do
+read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+echo ""
+if [[ "$klawisz" = "q" ]]; then
+clear
+return
+fi
+done
+}
+
+dodajRekord(){
+while true ; do
+cat $plikBaza
+liczbaKolumn=$(wc -l < $plikBaza)
+echo "Wprowadz $liczbaKolumn wartosci zgodnymi z naglowkami (wiersz na gorze)"
+read -a dane
+	if [[ ${#dane[@]} -ne $liczbaKolumn ]]; then
+		echo "Liczba wartosci nie zgadza sie z iloscia kolumn ($liczbaKolumn)"
+		continue
+	fi
+		echo "${dane[*]}" >> "$plikBaza"
+		read -p "Czy chcesz wprowadzic kolejny rekord? [t/n]" kolejnaOdpowiedz
+		kolejnaOdpowiedz=$(echo "$kolejnaOdpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze litery na male
+		[[ $kolejnaOdpowiedz != "t" ]] && break
+		echo "Dodawanie kolejnego rekordu..."  
+done 
+
+}
+
+edytujRekord(){
+cat $plikBaza
+echo
+echo 
+echo
+echo "------------------------"
+read -p "Podaj numer gracza do edycji: " nr_gracza
+
+ 
+
+}
+
+usunRekord(){
+cat $plikBaza
+echo
+echo
+echo
+echo "----------------------"
+read -p "Podaj numer gracza (nr_gracza) do usuniecia: " nr_gracza
+
+sed -i "/^$nr_gracza /d" "$plikBaza"
+
+echo "rekord z numerem gracza $nr_gracza zostal usuniety"
+
+}
+
+while true; do
+echo "Baza danych"
+echo "1) Stworz baze danych"
+echo "2) Pokaz baze danych"
+echo "3) Dodaj nowy rekord"
+echo "4) Edytuj rekord"
+echo "5) Usun rekord"
+echo "6) Wyjscie"
+read -p "Wybierz opcje [1-6]: " opcja
+
+	case $opcja in 
+		1)
+		clear
+	 	stworzBaze
+		;;
+		2)
+		clear
+		pokazBaze
+		;;
+		3)
+		clear
+		dodajRekord
+		;;
+		4)
+		clear
+		edytujRekord
+		;;
+		5)
+		clear
+		usunRekord
+		;;
+		6)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+
+
+done
+
+
+
+
+}
 
 #menu
 menu(){
@@ -564,11 +728,11 @@ read -p "Wybierz opcje [1-5]: " opcja
 		;;
 		3)
 		clear
-		zadanie3	
+		menuZadanie3	
 		;;
 		4)
 		clear
-		zadanie4
+		menuZadanie4
 		;;
 		5)
 		echo "Do zobaczenia"
