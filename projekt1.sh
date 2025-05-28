@@ -1,45 +1,31 @@
 #!/bin/bash
 
-#grupa1
-
-#utworzy X kont użytkowników o nazwach user1..…userX o haśle : passwordX. Po utworzeniu każdego konta ma pojawić się informacja np. user1 utworzono, user2 utworzono... Po dodaniu do grup, program ma wyświetlić info: user1 dodano do grupy mazwagrupy itd. Pierwszą połowę userów (od 1 do X/2) przypisz do grupy studenci_informatyki, a drugą (X/2+1 - X) do studenci_etyki. Skrypt ponadto wyświetla [na życzenie a nie z automatu] konta, grupy i ich zawartość.
-
-#grupa 2
-#a.przypisze dla karty sieciowej przewodowej i bezprzewodowej :
-#i.IP, maskę , bramę, dns – według potrzeb administratora
-#ii. IP, maskę , bramę, dns - automatycznie
-#iii. Jeżeli, któryś z powyższych interfejsów sieciowych nie istnieje w urządzeniu program ma wygenerować stosowany komunikat.
-#b.Wykorzysta programy sieciowe [ip a, ping, traceroute, ipconfig, ufw, netstat …]
-#c.Wyświetla informacje o ustawieniach sieciowych w systemie
-#Program może zapisywać konfigurację sieci w pliku, aby w przyszłości można było ją łatwo przywrócić.
-
-#grupa 3
-# Zliczy i wyświetli: konta i grupy użytkowników. Program ma również menu, w którym wybieramy czynność do wykonania. Przykładowe czynności to :
-#Dodawanie, usuwanie i modyfikowanie użytkowników.
-#Dodawanie, usuwanie i modyfikowanie grup.
-#Wyświetlanie wszystkich użytkowników i grup oraz ich zawartości.
-#Modyfikowanie nazw użytkowników i grup.
 menuZadanie1(){
 
+echo "==================================="
 while true; do
 echo "Program do administrowania systemem"
-echo ""
+echo "==================================="
 echo "1) Dodawanie x ilosci uzytkownikow"
+echo "-----------------------------------"
 echo "2) Wyswietl konta, grupy i zawartosc uzytkownikow"
-echo "3) Wyjście do menu"
-read -p "Wybierz opcje [1-3]: " opcja
+echo "-----------------------------------"
+echo "0) Wyjście do menu"
+echo "-----------------------------------"
+echo ""
+read -p "Wybierz opcje: " opcja
 
 
 	case $opcja in 
 		1)
-		
-		zadanie11
+		clear
+		dodajXIloscUzytkownikow
 		;;
 		2)
 		clear
-		zadanie12
+		wyswietlKontaIGrupy
 		;;
-		3)
+		0)
 		clear
 		return
 		;;
@@ -50,9 +36,11 @@ read -p "Wybierz opcje [1-3]: " opcja
 	esac
 	
 done
+
+
 }
 
-zadanie11(){
+dodajXIloscUzytkownikow(){
 echo "Tworzenie x ilości użytkowników o nazwie user[1-x] o haśle password[1-x]"
 sudo groupadd -f studenci_informatyki
 sudo groupadd -f studenci_etyki
@@ -69,7 +57,7 @@ if [[ "$ilosc" =~ ^-?[0-9]+$ ]]; then
 	nazwa="user$i"
 	haslo="password$i"
 	sprawdzCzyIstnieje=$(cat /etc/passwd | grep -w "^$nazwa" | cut -d: -f1)
-	if [[ -z "$sprawdzCzyIstnieje" ]] ; then
+	if [[ -z "$sprawdzCzyIstnieje" ]] ; then # -z sprawdza czy zmienna jest pusta
 	sudo useradd "$nazwa"
 	echo "$nazwa:$haslo" | sudo chpasswd
 	echo "utworzono uzytkownika $nazwa"
@@ -93,8 +81,6 @@ if [[ "$ilosc" =~ ^-?[0-9]+$ ]]; then
 	done	
 break
 
-#cut -d: -f1 /etc/passwd | grep "$szukanaOsoba" - sprawdzanie czy użytkownik istnieje
-
     else
         echo "Błąd: liczba musi być większa niż 1"
     fi
@@ -106,14 +92,16 @@ done
 
 }
 
-zadanie12(){
+wyswietlKontaIGrupy(){
 clear
+echo "==========================================="
 echo "WYSWIETLANIE KONT, GRUP I INFORMACJI O NICH"
-echo ""
+echo "==========================================="
 echo "LISTA UZYTKOWNIKOW"
-cut -d: -f1 /etc/passwd
+awk -F: '{printf "%s ", $1; if (++i % 5 == 0) print ""}' /etc/passwd 
+echo ""
 echo "LISTA GRUP I JEJ CZLONKOW"
-getent group | awk -F: '{print "Nazwa grupy: " $1 " - Czlonkowie: " $4}'
+getent group | awk -F: '{print "Czlonkowie grupy: "$1 ":", $4}'
 while true; do
 read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
 echo ""
@@ -125,25 +113,32 @@ done
 }
 
 menuZadanie2(){
-while true; do
-echo "Zadanie 2"
-echo ""
-echo "1) Przypisz dane do karty sieciowej"
-echo "2) Wyswietl informacje o ustawieniach sieciowych"
-echo "3) Wyjście do menu"
-read -p "Wybierz opcje [1-3]: " opcja
 
+while true; do
+echo "==================================="
+echo "Zarzadzanie karta sieciowa"
+echo "==================================="
+echo "1) Zmien adres karty sieciowej"
+echo "-----------------------------------"
+echo "2) Wyswietl informacje o ustawieniach sieciowych"
+echo "-----------------------------------"
+echo "0) Wyjście do menu"
+echo "-----------------------------------"
+echo ""
+read -p "Wybierz opcje: " opcja
+
+#todo otwieranie portow z ufw
 
 	case $opcja in 
 		1)
-		
-		zadanie21
+		clear
+		zmianaAdresuIP
 		;;
 		2)
 		clear
-		zadanie22
+		wyswietlInfo
 		;;
-		3)
+		0)
 		clear
 		return
 		;;
@@ -151,9 +146,49 @@ read -p "Wybierz opcje [1-3]: " opcja
 	 	echo "Wybrano nieprawidłową opcje"
 		;;
 	esac
-	echo ""
 done
+
+
 }
+
+
+zmianaAdresuIP(){
+
+while true ; do
+read -p "Do jakiej karty sieciowej chcesz zmienic adres?: " kartaSieciowa
+if ip link show "$kartaSieciowa" > /dev/null 2>&1 ; then 
+echo "Interfejs $kartaSieciowa istnieje"
+
+while true; do
+	echo "==================================="
+	echo "Wybierz konfiguracje dla $kartaSieciowa: "
+	echo "==================================="
+	echo "1) Statycznie - wedlug swoich potrzeb"
+	echo "-----------------------------------" 
+	echo "2) Automatycznie - DHCP"
+	echo "-----------------------------------" 
+	echo "0) Wyjście do menu"
+	echo "-----------------------------------" 
+	echo ""
+	read -p "Wybierz opcje: " opcja
+
+case $opcja in
+	1) ustawStatycznie "$kartaSieciowa" ;;
+	2) ustawDHCP "$kartaSieciowa" ;;
+	0)
+	clear
+	return
+	;;
+	*) echo "Wybrano nieprawidlowa opcje" ;;
+	esac
+	done
+else
+	echo "Interfejs $kartaSieciowa nie istnieje"
+
+fi 
+done
+
+
 
 ustawStatycznie(){
 kartaSieciowa1=$1
@@ -174,42 +209,12 @@ echo "Dokonano konfiguracji dla $kartaSieciowa1"
 }
 
 ustawDHCP(){
-#todo: spytac czy moze byc instalowany program typu dhclient
-echo "costam"
+
+
+}
 }
 
-zadanie21(){
-
-while true ; do
-read -p "Do jakiej karty sieciowej chcesz zmienic adres?: " kartaSieciowa
-if ip link show "$kartaSieciowa" > /dev/null 2>&1 ; then 
-echo "Interfejs $kartaSieciowa istnieje"
-
-while true; do
-	echo "Wybierz konfiguracje dla $kartaSieciowa: "
-	echo "1) Statycznie - wedlug swoich potrzeb"
-	echo "2) Automatycznie - DHCP"
-	echo "3) Wyjście do menu"
-	read -p "Wybierz opcje [1-3]: " opcja
-
-case $opcja in
-	1) ustawStatycznie "$kartaSieciowa" ;;
-	2) ustawDHCP "$kartaSieciowa" ;;
-	3)
-	clear
-	return
-	;;
-	*) echo "Wybrano nieprawidlowa opcje" ;;
-	esac
-	done
-else
-	echo "Interfejs $kartaSieciowa nie istnieje"
-
-fi 
-done
-}
-
-zadanie22(){
+wyswietlInfo(){
 # swoje adresy
 # polaczenie z internetem
 # informacje o portach
@@ -221,7 +226,7 @@ $(ifconfig | grep 'inet ' | awk '{print "Adres IP:", $2, "Maska:", $4, "Brama:",
 echo ""
 echo "Sprawdzenie polaczenia: "
 
-if(ping -c 1 8.8.8.8 | grep -w "1 received"); then
+if(ping -c 1 8.8.8.8 | grep -q -w "1 received"); then
 echo "Polaczony z internetem"
 else
 echo "Brak polaczenia z internetem" 
@@ -230,34 +235,51 @@ echo ""
 echo "Informacje o firewallu i portach"
 ufw status
 
+
+while true; do
+read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+echo ""
+if [[ "$klawisz" == "q" ]]; then
+clear
+return
+fi
+done
+
+
 }
-
-
 
 menuZadanie3(){
 while true; do
 liczbaUzytkownikow=$(wc -l /etc/passwd | awk '{print $1}')
-echo "Liczba uzytkownikow wynosi $liczbaUzytkownikow" 
+echo "==================================="
 echo "Zarzadzanie uzytkownikami i grupami"
+echo "==================================="
+echo "Liczba uzytkownikow wynosi: $liczbaUzytkownikow"
+echo "===================================" 
 echo "1) Dodawanie, usuwanie i modyfikowanie uzytkownikow"
+echo "-----------------------------------" 
 echo "2) Dodawanie, usuwanie i modyfikowanie grup"
+echo "-----------------------------------" 
 echo "3) Wyswietlanie wszystkich uzytkownikow i grup oraz ich zawartosci"
-echo "4) Wyjście"
-read -p "Wybierz opcje [1-4]: " opcja
+echo "-----------------------------------" 
+echo "0) Wyjście"
+echo "-----------------------------------" 
+echo ""
+read -p "Wybierz opcje: " opcja
 	case $opcja in 
 		1)
 		clear
-		zadanie31
+		zarzadzanieUzytkownikami
 		;;
 		2)
 		clear
-		zadanie32
+		zarzadzanieGrupami
 		;;
 		3)
 		clear
-		zadanie33
+		wyswietlKontaIGrupy
 		;;
-		4)
+		0)
 		clear
 		return
 		;;
@@ -267,11 +289,12 @@ read -p "Wybierz opcje [1-4]: " opcja
 		;;
 	esac
 	
-done	
+done
+
+
 }
 
-
-zadanie31(){
+zarzadzanieUzytkownikami(){
 
 dodajUzytkownika(){
 while true; do
@@ -323,13 +346,20 @@ done
 }
 
 modyfikujUzytkownika(){
-echo "Modyfikacja uzytkownika"
 while true; do
+echo "==================================="
+echo "Modyfikacja uzytkownika" 
+echo "===================================" 
 echo "1) Zmien nazwe uzytkownika"
+echo "-----------------------------------" 
 echo "2) Zmien haslo uzytkownika"
+echo "-----------------------------------" 
 echo "3) Dodaj uzytkownika do grupy"
-echo "4) Wyjscie"
-read -p "Wybierz opcje [1-4]: " opcja
+echo "-----------------------------------" 
+echo "0) Wyjscie"
+echo "-----------------------------------" 
+echo ""
+read -p "Wybierz opcje: " opcja
 
 	case $opcja in 
 		1)
@@ -384,7 +414,7 @@ read -p "Wybierz opcje [1-4]: " opcja
 		fi
 		return
 		;;
-		4)
+		0)
 		clear
 		return
 		;;
@@ -396,19 +426,24 @@ read -p "Wybierz opcje [1-4]: " opcja
 	
 	
 done
-# modyfikuj nazwe uzytkownika,
-# modyfikuj haslo uzytkownika,
-# dodaj uzytkownika do grupy 
+
 }
 
 
 while true; do
-echo "'Dodawanie, usuwanie i modyfikowanie uzytkownikow'"
+echo "===================================" 
+echo "Dodawanie, usuwanie i modyfikowanie uzytkownikow"
+echo "===================================" 
 echo "1) Dodaj uzytkownika"
+echo "-----------------------------------" 
 echo "2) Usuwanie uzytkownika"
+echo "-----------------------------------"
 echo "3) Modyfikowanie uzytkownikow"
-echo "4) Wyjscie"
-read -p "Wybierz opcje [1-4]: " opcja
+echo "-----------------------------------"
+echo "0) Wyjscie"
+echo "-----------------------------------"
+echo ""
+read -p "Wybierz opcje: " opcja
 
 	case $opcja in 
 		1)
@@ -423,7 +458,7 @@ read -p "Wybierz opcje [1-4]: " opcja
 		clear
 		modyfikujUzytkownika
 		;;
-		4)
+		0)
 		clear
 		return
 		;;
@@ -438,7 +473,7 @@ done
 }
 
 
-zadanie32(){
+zarzadzanieGrupami(){
 
 dodajGrupe(){
 echo "Dodawanie grupy"
@@ -478,7 +513,6 @@ read -p "Podaj nowa nazwe grupy" nowanazwaGrupy
 if getent group "$nazwaGrupy" &>/dev/null; then
 groupmod -n $nowanazwaGrupy $nazwaGrupy
 echo "Nazwa grupy $nazwaGrupy zostala zmieniona na $nowanazwaGrupy"
-return
 else
 echo "Grupa $nazwaGrupy nie istnieje"
 return
@@ -494,8 +528,8 @@ echo "'Dodawanie, usuwanie i modyfikowanie grup'"
 echo "1) Dodaj grupe"
 echo "2) Usun grupe"
 echo "3) Zmien nazwe grupy"
-echo "4) Wyjscie"
-read -p "Wybierz opcje [1-4]: " opcja
+echo "0) Wyjscie"
+read -p "Wybierz opcje: " opcja
 
 	case $opcja in 
 		1)
@@ -510,7 +544,7 @@ read -p "Wybierz opcje [1-4]: " opcja
 		clear
 		zmiennazweGrupy
 		;;
-		4)
+		0)
 		clear
 		return
 		;;
@@ -524,7 +558,7 @@ read -p "Wybierz opcje [1-4]: " opcja
 done
 }
 
-zadanie33(){
+wyswietlInfoUzytGrup(){
 clear
 echo "WYSWIETLANIE KONT, GRUP I INFORMACJI O NICH"
 echo ""
@@ -542,6 +576,8 @@ fi
 done
 }
 
+	
+
 
 menuZadanie4(){
 
@@ -555,8 +591,70 @@ plikBaza="baza_danych.txt"
 # wyjscie z bazy 
 
 
+while true; do
+echo "Baza danych"
+echo "1) Stworz baze danych"
+echo "2) Pokaz baze danych"
+echo "3) Dodaj nowy rekord"
+echo "4) Edytuj rekord"
+echo "5) Usun rekord"
+echo "0) Wyjscie"
+read -p "Wybierz opcje: " opcja
+
+	case $opcja in 
+		1)
+		clear
+	 	stworzBaze
+		;;
+		2)
+		clear
+		pokazBaze
+		;;
+		3)
+		clear
+		dodajRekord
+		;;
+		4)
+		clear
+		edytujRekord
+		;;
+		5)
+		clear
+		usunRekord
+		;;
+		0)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+	esac
+
+
+done
+
+}
 
 stworzBaze(){
+
+if [[ -e $plikBaza ]]; then
+while true; do
+read -p "Plik $plikBaza istnieje czy chcialbys go usunac? [t/n]: " odpowiedz
+odpowiedz=$(echo "$odpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze litery na male
+if [[ $odpowiedz == "t" ]]; then
+rm "$plikBaza"
+break
+elif [[ $odpowiedz == "n" ]]; then
+echo "Powrot do menu"
+return
+else 
+echo "Prosze kliknac [t/n]: "
+fi 
+done
+fi
+
 read -p "Podaj liczbe kolumn: " liczbaKolumn
 echo "Podaj nazwy naglowkow (kazda nazwa kolumny oddzielona spacja): "
 read -a nazwyNaglowkow #zapisuje te slowa w tablice
@@ -567,7 +665,7 @@ return
 else
 echo "${nazwyNaglowkow[*]}" > "$plikBaza"
 echo "Dodano naglowki tabeli"
-cat $plikBaza
+cat "$plikBaza"
 fi
 
 read -p "Czy chcesz wprowadzic rekord? [t/n]" odpowiedz
@@ -575,7 +673,7 @@ odpowiedz=$(echo "$odpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze liter
 
 if [[ $odpowiedz == "t" ]]; then
 while true ; do
-cat $plikBaza
+cat "$plikBaza"
 echo "Wprowadz $liczbaKolumn wartosci zgodnymi z naglowkami (wiersz na gorze)"
 read -a dane
 	if [[ ${#dane[@]} -ne $liczbaKolumn ]]; then
@@ -583,15 +681,16 @@ read -a dane
 		continue
 	fi
 		echo "${dane[*]}" >> "$plikBaza"
-		read -p "Czy chcesz wprowadzic kolejny rekord? [t/n]" kolejnaOdpowiedz
+		read -p "Czy chcesz wprowadzic kolejny rekord? [t/n]: " kolejnaOdpowiedz
 		kolejnaOdpowiedz=$(echo "$kolejnaOdpowiedz" | tr '[:upper:]' '[:lower:]') #zamienia duze litery na male
 		[[ $kolejnaOdpowiedz != "t" ]] && break
 		echo "Dodawanie kolejnego rekordu..."  
+		clear
 done 
 fi 
 
-
 }
+
 
 pokazBaze(){
 clear
@@ -634,11 +733,67 @@ cat $plikBaza
 echo
 echo 
 echo
-echo "------------------------"
+while true; do
+echo "==================================="
 read -p "Podaj numer gracza do edycji: " nr_gracza
+echo "==================================="
+if grep -q "^$nr_gracza" "$plikBaza" ; then
+echo "1) Nr_gracza"
+echo "-----------------------------------"
+echo "2) Imie_i_nazwisko"
+echo "-----------------------------------"
+echo "3) Klub"
+echo "-----------------------------------"
+echo "4) Ilosc_pkt"
+echo "-----------------------------------"
+echo "0) Wyjdz"
+echo "-----------------------------------"
+read -p "Znaleziono gracza nr $nr_gracza, co chcialbys zmienic?" zmiana
+case $zmiana in 
+	1)
+		clear
+	 	read -p "Podaj nowy nr_gracza" nowa_wartosc
+	 	sed -i "/^$nr_gracza /s/^[^ ]*/$nowa_wartosc/" "$plikBaza"
+		echo "Numer gracza zostal zmieniony na $nowa_wartosc"
+		return
+		;;
+	2)
+  		clear
+  		read -p "Podaj nowe imie i nazwisko: " nowa_wartosc
+  		sed -Ei "/^$nr_gracza /s/^([^ ]*) [^ ]*/\1 $nowa_wartosc/" "$plikBaza"
+  		echo "Imię i nazwisko zostało zmienione na $nowa_wartosc"
+  		return
+  		;;
 
- 
+	3)
+  		clear
+  		read -p "Podaj nowy klub: " nowa_wartosc
+  		sed -Ei "/^$nr_gracza /s/^([^ ]* [^ ]* )[^ ]*/\1$nowa_wartosc/" "$plikBaza"
+  		echo "Klub został zmieniony na $nowa_wartosc"
+  		return
+  		;;
 
+	4)
+  		clear
+  		read -p "Podaj nową ilość punktów: " nowa_wartosc
+  		sed -Ei "/^$nr_gracza /s/^([^ ]* [^ ]* [^ ]* )[^ ]*/\1$nowa_wartosc/" "$plikBaza"
+  		echo "Ilość punktów została zmieniona na $nowa_wartosc"
+  		return
+  		;;
+	0)
+		clear
+		return
+		;;
+		*)
+		clear
+	 	echo "Wybrano nieprawidłową opcje"
+		;;
+esac
+
+else
+echo "Nie znaleziono gracza nr $nr_gracza, sprobuj ponownie"
+fi
+done
 }
 
 usunRekord(){
@@ -655,66 +810,24 @@ echo "rekord z numerem gracza $nr_gracza zostal usuniety"
 
 }
 
-while true; do
-echo "Baza danych"
-echo "1) Stworz baze danych"
-echo "2) Pokaz baze danych"
-echo "3) Dodaj nowy rekord"
-echo "4) Edytuj rekord"
-echo "5) Usun rekord"
-echo "6) Wyjscie"
-read -p "Wybierz opcje [1-6]: " opcja
-
-	case $opcja in 
-		1)
-		clear
-	 	stworzBaze
-		;;
-		2)
-		clear
-		pokazBaze
-		;;
-		3)
-		clear
-		dodajRekord
-		;;
-		4)
-		clear
-		edytujRekord
-		;;
-		5)
-		clear
-		usunRekord
-		;;
-		6)
-		clear
-		return
-		;;
-		*)
-		clear
-	 	echo "Wybrano nieprawidłową opcje"
-		;;
-	esac
-
-
-done
-
-
-
-
-}
-
 #menu
 menu(){
+clear
 while true; do
 echo "Program do administrowania systemem"
-echo "MENU"
+echo "===========MENU GLOWNE============="
 echo "1) Zadanie 1"
+echo "-----------------------------------"
 echo "2) Zadanie 2"
+echo "-----------------------------------"
 echo "3) Zadanie 3"
+echo "-----------------------------------"
 echo "4) Zadanie 4"
-echo "5) Wyjście"
-read -p "Wybierz opcje [1-5]: " opcja
+echo "-----------------------------------"
+echo "0) Wyjście"
+echo "-----------------------------------"
+echo ""
+read -p "Wybierz opcje: " opcja
 
 
 	case $opcja in 
@@ -734,10 +847,10 @@ read -p "Wybierz opcje [1-5]: " opcja
 		clear
 		menuZadanie4
 		;;
-		5)
+		0)
+		clear
 		echo "Do zobaczenia"
 		break
-		menu
 		;;
 		*)
 		clear
