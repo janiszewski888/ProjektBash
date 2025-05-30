@@ -4,36 +4,36 @@ menuZadanie1(){
 
 echo "==================================="
 while true; do
-echo "Program do administrowania systemem"
-echo "==================================="
-echo "1) Dodawanie x ilosci uzytkownikow"
-echo "-----------------------------------"
-echo "2) Wyswietl konta, grupy i zawartosc uzytkownikow"
-echo "-----------------------------------"
-echo "0) Wyjście do menu"
-echo "-----------------------------------"
-echo ""
-read -p "Wybierz opcje: " opcja
+	echo "Program do administrowania systemem"
+	echo "==================================="
+	echo "1) Dodawanie x ilosci uzytkownikow"
+	echo "-----------------------------------"
+	echo "2) Wyswietl konta, grupy i zawartosc uzytkownikow"
+	echo "-----------------------------------"
+	echo "0) Wyjście do menu"
+	echo "-----------------------------------"
+	echo ""
+	read -p "Wybierz opcje: " opcja
 
 
-	case $opcja in 
-		1)
-		clear
-		dodajXIloscUzytkownikow
-		;;
-		2)
-		clear
-		wyswietlKontaIGrupy
-		;;
-		0)
-		clear
-		return
-		;;
-		*)
-		clear
-	 	echo "Wybrano nieprawidłową opcje"
-		;;
-	esac
+case $opcja in 
+	1)
+	clear
+	dodajXIloscUzytkownikow
+	;;
+	2)
+	clear
+	wyswietlKontaIGrupy
+	;;
+	0)
+	clear
+	return
+	;;
+	*)
+	clear
+	echo "Wybrano nieprawidłową opcje"
+	;;
+esac
 	
 done
 
@@ -45,47 +45,42 @@ echo "Tworzenie x ilości użytkowników o nazwie user[1-x] o haśle password[1-
 sudo groupadd -f studenci_informatyki
 sudo groupadd -f studenci_etyki
 while true; do
-read -p "ile użytkowników chciałbyś stworzyć? :" ilosc
+	read -p "Ile użytkowników chciałbyś stworzyć?: " ilosc
 
 if [[ "$ilosc" =~ ^-?[0-9]+$ ]]; then
     if (( ilosc >= 1 )); then
 	polowa=$((ilosc/2))
 	
-	#tworzenie uzytkownikow w petli for
-	for ((i = 1; i <= ilosc; i++)); do
+ 								#tworzenie uzytkownikow w petli for
+		for ((i = 1; i <= ilosc; i++)); do
+			nazwa="user$i"
+			haslo="password$i"
+			sprawdzCzyIstnieje=$(cat /etc/passwd | grep -w "^$nazwa" | cut -d: -f1)
+				if [[ -z "$sprawdzCzyIstnieje" ]] ; then # -z sprawdza czy zmienna jest pusta
+					sudo useradd "$nazwa"
+					echo "$nazwa:$haslo" | sudo chpasswd
+					echo "utworzono uzytkownika $nazwa"
+						if((i <= polowa)); then
+							grupa="studenci_informatyki"
+							sudo usermod -a -G "$grupa" "$nazwa"
+							echo "Dodano uzytkownika $nazwa do grupy $grupa"
+						else
+							grupa="studenci_etyki"
+							sudo usermod -a -G "$grupa" "$nazwa"
+							echo "Dodano uzytkownika $nazwa do grupy $grupa"
+						fi
+				else
+				echo "uzytkownik $nazwa istnieje"
+				fi
 	
-	nazwa="user$i"
-	haslo="password$i"
-	sprawdzCzyIstnieje=$(cat /etc/passwd | grep -w "^$nazwa" | cut -d: -f1)
-	if [[ -z "$sprawdzCzyIstnieje" ]] ; then # -z sprawdza czy zmienna jest pusta
-	sudo useradd "$nazwa"
-	echo "$nazwa:$haslo" | sudo chpasswd
-	echo "utworzono uzytkownika $nazwa"
-	if((i <= polowa)); then
-	
-	grupa="studenci_informatyki"
-	sudo usermod -a -G "$grupa" "$nazwa"
-	echo "Dodano uzytkownika $nazwa do grupy $grupa"
-	
-	else
-	
-	grupa="studenci_etyki"
-	sudo usermod -a -G "$grupa" "$nazwa"
-	echo "Dodano uzytkownika $nazwa do grupy $grupa"
-	fi
-	
-	else
-	echo "uzytkownik $nazwa istnieje"
-	fi
-	
-	done	
-break
+		done	
+		break
 
     else
-        echo "Błąd: liczba musi być większa niż 1"
-    fi
+	echo "Błąd: liczba musi być większa niż 1"
+	fi
 else
-    echo "Błąd: to nie jest liczba całkowita"
+echo "Błąd: to nie jest liczba calkowita"
 fi
 done
 
@@ -103,29 +98,29 @@ echo ""
 echo "LISTA GRUP I JEJ CZLONKOW"
 getent group | awk -F: '{print "Czlonkowie grupy: "$1 ":", $4}'
 while true; do
-read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
-echo ""
-if [[ "$klawisz" == "q" ]]; then
-clear
-return
-fi
+	read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+	echo ""
+		if [[ "$klawisz" == "q" ]]; then
+			clear
+			return
+		fi
 done
 }
 
 menuZadanie2(){
 
 while true; do
-echo "==================================="
-echo "Zarzadzanie karta sieciowa"
-echo "==================================="
-echo "1) Zmien adres karty sieciowej"
-echo "-----------------------------------"
-echo "2) Wyswietl informacje o ustawieniach sieciowych"
-echo "-----------------------------------"
-echo "0) Wyjście do menu"
-echo "-----------------------------------"
-echo ""
-read -p "Wybierz opcje: " opcja
+	echo "==================================="
+	echo "Zarzadzanie karta sieciowa"
+	echo "==================================="
+	echo "1) Zmien adres karty sieciowej"
+	echo "-----------------------------------"
+	echo "2) Wyswietl informacje o ustawieniach sieciowych"
+	echo "-----------------------------------"
+	echo "0) Wyjście do menu"
+	echo "-----------------------------------"
+	echo ""
+	read -p "Wybierz opcje: " opcja
 
 #todo otwieranie portow z ufw
 
@@ -155,44 +150,45 @@ done
 zmianaAdresuIP(){
 
 while true ; do
-read -p "Do jakiej karty sieciowej chcesz zmienic adres?: " kartaSieciowa
-if ip link show "$kartaSieciowa" > /dev/null 2>&1 ; then 
-echo "Interfejs $kartaSieciowa istnieje"
+	read -p "Do jakiej karty sieciowej chcesz zmienic adres?: " kartaSieciowa
+		if ip link show "$kartaSieciowa" > /dev/null 2>&1 ; then 
+		echo "Interfejs $kartaSieciowa istnieje"
 
-while true; do
-	echo "==================================="
-	echo "Wybierz konfiguracje dla $kartaSieciowa: "
-	echo "==================================="
-	echo "1) Statycznie - wedlug swoich potrzeb"
-	echo "-----------------------------------" 
-	echo "2) Automatycznie - DHCP"
-	echo "-----------------------------------" 
-	echo "0) Wyjście do menu"
-	echo "-----------------------------------" 
-	echo ""
-	read -p "Wybierz opcje: " opcja
+		while true; do
+			echo "==================================="
+			echo "Wybierz konfiguracje dla $kartaSieciowa: "
+			echo "==================================="
+			echo "1) Statycznie - wedlug swoich potrzeb"
+			echo "-----------------------------------" 
+			echo "2) Automatycznie - DHCP"
+			echo "-----------------------------------" 
+			echo "0) Wyjście do menu"
+			echo "-----------------------------------" 
+			echo 
+			read -p "Wybierz opcje: " opcja
 
-case $opcja in
-	1) ustawStatycznie "$kartaSieciowa" ;;
-	2) ustawDHCP "$kartaSieciowa" ;;
-	0)
-	clear
-	return
-	;;
-	*) echo "Wybrano nieprawidlowa opcje" ;;
-	esac
-	done
-else
-	echo "Interfejs $kartaSieciowa nie istnieje"
+			case $opcja in
+			1) ustawStatycznie "$kartaSieciowa" ;;
+			2) ustawDHCP "$kartaSieciowa" ;;
+			0)
+			clear
+			return
+			;;
+			*) echo "Wybrano nieprawidlowa opcje" ;;
+			esac
+		done
+		else
+			echo "Interfejs $kartaSieciowa nie istnieje"
 
-fi 
+		fi 
 done
-
+}
 
 
 ustawStatycznie(){
+clear
 kartaSieciowa1=$1
-
+dhclient -r $kartaSieciowa1 &> /dev/null
 read -p "Podaj adres IP dla $kartaSieciowa1: " ip
 read -p "Podaj maske dla $kartaSieciowa1 (np. 24 dla 255.255.255.0): " maska
 read -p "Podaj brame dla $kartaSieciowa1: " brama
@@ -202,16 +198,43 @@ aktualneIP=$(ip a | grep -w "$kartaSieciowa1" | grep "inet" | awk '{print $2}')
 ip addr del $aktualneIP dev $kartaSieciowa1
 ip addr add ${ip}/${maska} dev $kartaSieciowa1
 ip link set $kartaSieciowa1 up
-ip route add default via $brama dev $kartaSieciowa1
-echo "nameserver $dns" | tee /etc/resolv.conf 
+ip route add default via $brama dev $kartaSieciowa1 
+echo "nameserver $dns" | tee /etc/resolv.conf &> /dev/null
 
 echo "Dokonano konfiguracji dla $kartaSieciowa1"
 }
 
+
+
 ustawDHCP(){
+kartaSieciowa1=$1
+aktualneIP=$(ip a | grep -w "$kartaSieciowa1" | grep "inet" | awk '{print $2}')
+ip addr del $aktualneIP dev $kartaSieciowa1 &> /dev/null
+read -p "Czy chcesz ustawic adres DHCP na stale(1), czy na jedno uruchomienie(2): " wybor
+cfg="/etc/sysconfig/network-scripts/ifcfg-$kartaSieciowa1"
+if [[ $wybor = "1" ]]; then
+	dhclient -r $kartaSieciowa1 &> /dev/null
+	dhclient $kartaSieciowa1 &> /dev/null
+	touch "$cfg"
+	echo "BOOTPROTO=dhcp" > $cfg
+	echo "ONBOOT=yes" >> $cfg  
+	echo "Dokonano konfiguracji DHCP na stale"
+elif [[ $wybor = "2" ]]; then
+	dhclient -r $kartaSieciowa1 &> /dev/null
+	dhclient $kartaSieciowa1 &> /dev/null
+	touch "$cfg"
+	echo "" > "$cfg" &> /dev/null
+	echo "Dokonano konfiguracji DHCP dla $kartaSieciowa1,"
+	echo "pamietaj ze po restarcie karta powroci do"
+	echo "adresu statycznego"
+else
+	echo "Zly przycisk"
+fi
 
+#touch /etc/sysconfig/network-scripts/ifcfg-$kartaSieciowa 
+#dhclient $kartaSieciowa1
 
-}
+#echo "Dokonano konfiguracji dla $kartaSieciowa1, pamietaj ze po restarcie systemu karta powroci do poprzedniego adresu"
 }
 
 wyswietlInfo(){
@@ -221,15 +244,16 @@ wyswietlInfo(){
 #
 #
 echo "Informacje o ustawieniach sieciowych:
-
-$(ifconfig | grep 'inet ' | awk '{print "Adres IP:", $2, "Maska:", $4, "Brama:", ($6 ? $6 : "Brak informacji")}')"
+$(ifconfig | grep 'inet ' | awk '{print "Adres IP:", $2, 
+"Maska:", $4}' | head -1) $(ip route | awk '/default/ {print "Brama:", $3}' | tail -1)"
+#echo "$(ip route | awk '/default/ {print "Brama:", $3}' | tail -1)"
 echo ""
 echo "Sprawdzenie polaczenia: "
 
-if(ping -c 1 8.8.8.8 | grep -q -w "1 received"); then
-echo "Polaczony z internetem"
+if ping -c 1 8.8.8.8 | grep -q -w "1 received"; then
+	echo "Polaczony z internetem"
 else
-echo "Brak polaczenia z internetem" 
+	echo "Brak polaczenia z internetem" 
 fi
 echo ""
 echo "Informacje o firewallu i portach"
@@ -237,16 +261,17 @@ ufw status
 
 
 while true; do
-read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
-echo ""
+	read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+	echo ""
 if [[ "$klawisz" == "q" ]]; then
-clear
-return
+	clear
+	return
 fi
 done
 
 
 }
+
 
 menuZadanie3(){
 while true; do
@@ -700,21 +725,21 @@ echo ""
 echo "----------------------------------"
 
 while true; do
-read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
-echo ""
-if [[ "$klawisz" = "q" ]]; then
-clear
-return
-fi
+	read -n1 -p "Nacisnij 'q' aby wyjsc: " klawisz
+	echo ""
+	if [[ "$klawisz" = "q" ]]; then
+		clear
+		return
+	fi
 done
 }
 
 dodajRekord(){
 while true ; do
-cat $plikBaza
-liczbaKolumn=$(wc -l < $plikBaza)
-echo "Wprowadz $liczbaKolumn wartosci zgodnymi z naglowkami (wiersz na gorze)"
-read -a dane
+	cat $plikBaza
+	liczbaKolumn=$(wc -l < $plikBaza)
+	echo "Wprowadz $liczbaKolumn wartosci zgodnymi z naglowkami (wiersz na gorze)"
+	read -a dane
 	if [[ ${#dane[@]} -ne $liczbaKolumn ]]; then
 		echo "Liczba wartosci nie zgadza sie z iloscia kolumn ($liczbaKolumn)"
 		continue
@@ -734,21 +759,21 @@ echo
 echo 
 echo
 while true; do
-echo "==================================="
-read -p "Podaj numer gracza do edycji: " nr_gracza
-echo "==================================="
-if grep -q "^$nr_gracza" "$plikBaza" ; then
-echo "1) Nr_gracza"
-echo "-----------------------------------"
-echo "2) Imie_i_nazwisko"
-echo "-----------------------------------"
-echo "3) Klub"
-echo "-----------------------------------"
-echo "4) Ilosc_pkt"
-echo "-----------------------------------"
-echo "0) Wyjdz"
-echo "-----------------------------------"
-read -p "Znaleziono gracza nr $nr_gracza, co chcialbys zmienic?" zmiana
+	echo "==================================="
+	read -p "Podaj numer gracza do edycji: " nr_gracza
+	echo "==================================="
+	if grep -q "^$nr_gracza" "$plikBaza" ; then
+		echo "1) Nr_gracza"
+		echo "-----------------------------------"
+		echo "2) Imie_i_nazwisko"
+		echo "-----------------------------------"
+		echo "3) Klub"
+		echo "-----------------------------------"
+		echo "4) Ilosc_pkt"
+		echo "-----------------------------------"
+		echo "0) Wyjdz"
+		echo "-----------------------------------"
+		read -p "Znaleziono gracza nr $nr_gracza, co chcialbys zmienic?" zmiana
 case $zmiana in 
 	1)
 		clear
@@ -814,20 +839,20 @@ echo "rekord z numerem gracza $nr_gracza zostal usuniety"
 menu(){
 clear
 while true; do
-echo "Program do administrowania systemem"
-echo "===========MENU GLOWNE============="
-echo "1) Zadanie 1"
-echo "-----------------------------------"
-echo "2) Zadanie 2"
-echo "-----------------------------------"
-echo "3) Zadanie 3"
-echo "-----------------------------------"
-echo "4) Zadanie 4"
-echo "-----------------------------------"
-echo "0) Wyjście"
-echo "-----------------------------------"
-echo ""
-read -p "Wybierz opcje: " opcja
+	echo "Program do administrowania systemem"
+	echo "===========MENU GLOWNE============="
+	echo "1) Zadanie 1"
+	echo "-----------------------------------"
+	echo "2) Zadanie 2"
+	echo "-----------------------------------"
+	echo "3) Zadanie 3"
+	echo "-----------------------------------"
+	echo "4) Zadanie 4"
+	echo "-----------------------------------"
+	echo "0) Wyjście"
+	echo "-----------------------------------"
+	echo ""
+	read -p "Wybierz opcje: " opcja
 
 
 	case $opcja in 
